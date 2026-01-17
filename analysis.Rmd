@@ -1,0 +1,122 @@
+---
+title: "HW1"
+author: "Ziyue Wang"
+date: "2025-10-06"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Executive Summary 
+
+
+## Question 1
+
+```{r Question 1 load data}
+load('IGAds.Rdata')
+
+str(IGAds)
+head(IGAds)
+```
+
+```{r Question 1 Conversion}
+nbin = 25000
+
+A <- IGAds[IGAds$Condition == 'A',]
+B <- IGAds[IGAds$Condition == 'B',]
+C <- IGAds[IGAds$Condition == 'C',]
+Control <- IGAds[IGAds$Condition == 'Control',]
+
+countA <- sum(A$Conversion)
+countB <- sum(B$Conversion)
+countC <- sum(C$Conversion)
+countCountrol <- sum(Control$Conversion)
+
+### Two-sample proportions test (one-sided) for conversion: Is ad > control?
+a_ab <- prop.test(x=c(countA,countCountrol), n=c(nbin,nbin), alternative = 'greater')
+b_ab <- prop.test(x=c(countB,countCountrol), n=c(nbin,nbin), alternative = 'greater')
+c_ab <- prop.test(x=c(countC,countCountrol), n=c(nbin,nbin), alternative = 'greater')
+
+# Treatment effect
+a_ab$estimate[1] - a_ab$estimate[2]
+b_ab$estimate[1] - b_ab$estimate[2]
+c_ab$estimate[1] - c_ab$estimate[2]
+
+# Test output
+a_ab
+b_ab
+c_ab
+```
+
+### All the ads have significantly higher conversion rate than Control Group (p < 0.05/3 = 0.0167).
+
+```{r Question 1 t-test for revenue}
+A_rev <- A$Revenue[A$Conversion == 1]
+B_rev <- B$Revenue[B$Conversion == 1]
+C_rev <- C$Revenue[C$Conversion == 1]
+Contorl_rev <- Control$Revenue[Control$Conversion == 1]
+
+a_t <- t.test(A_rev, Contorl_rev, alternative = 'two.sided', var.equal = FALSE)
+b_t <- t.test(B_rev, Contorl_rev, alternative = 'two.sided', var.equal = FALSE)
+c_t <- t.test(C_rev, Contorl_rev, alternative = 'two.sided', var.equal = FALSE)
+
+a_t$p.value*3
+b_t$p.value*3
+c_t$p.value*3
+```
+
+### Among converted customers, Ads A and C have significantly higher average revenue than Control Group (p < 0.05/3 = 0.0167).
+
+```{r Question 1 Computing and Comparing ROI}
+## Computing ROI for each advertisement
+c = 0.20
+CPIC_a <- c / (a_ab$estimate[1] - a_ab$estimate[2])
+CPIC_b <- c / (b_ab$estimate[1] - b_ab$estimate[2])
+CPIC_c <- c / (c_ab$estimate[1] - c_ab$estimate[2])
+
+piPIC_a <- mean(A_rev)
+piPIC_b <- (b_ab$estimate[1]*b_t$estimate[1] + b_ab$estimate[2]*b_t$estimate[2])  / (b_ab$estimate[1] + b_ab$estimate[2])
+piPIC_c <- mean(C_rev)
+
+ROI_a <- (piPIC_a - CPIC_a) / CPIC_a
+ROI_b <- (piPIC_b - CPIC_b) / CPIC_b
+ROI_c <- (piPIC_c - CPIC_c) / CPIC_c
+
+ROI_a
+ROI_b
+ROI_c
+```
+### Advertisement A and C have positive ROIs, therefore we should continue to use A and C.
+
+## Question 2
+https://www.optimizely.com/sample-size-calculator/#/?conversion=2.568&effect=20&significance=95
+
+In order to detect minimum detectable effect, we decide to stop the experiment at 60000 people (15000 for each Ad and control group) through the above website. Assume we found that Ad B performs worst. 
+
+Therefore, for the rest of 30,000 people (exclude control group), we decide to exclude Ad B and evenly distribute it among Ad A and C.
+
+```{r Question 2}
+con_a <- countA / nbin
+con_b <- countB / nbin
+con_c <- countC / nbin
+
+con_ABC <- (con_a*10000 + con_b*10000 + con_c*10000)
+con_excludeB <- (con_a*15000 + con_c*15000)
+
+average_piPIC <- mean(piPIC_a,piPIC_b,piPIC_c)
+
+lost_conversion <- con_excludeB - con_ABC
+lost_conversion
+
+additional_profit <- (con_excludeB - con_ABC) * average_piPIC
+additional_profit
+```
+
+Therefore, for the remaining 30,000 people, if we had eliminated the worst advertisements earlier by applying multi-armed bandit, we could have earned an additional profit of approximately $1,961.
+
+**Conclusion**: Multi‑armed bandit requires a 60,000 sample to identify the winning ad. And 166 conversions ($1961 profit) we may have lost by running the experiment for too long. 
+

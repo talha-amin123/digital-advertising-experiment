@@ -1,6 +1,6 @@
 ---
-title: "HW1"
-author: "Ziyue Wang"
+title: "Digital Advertisement Experiment"
+author: "Talha Amin"
 date: "2025-10-06"
 output:
   pdf_document: default
@@ -10,8 +10,6 @@ output:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
-
-## Executive Summary 
 
 
 ## Question 1

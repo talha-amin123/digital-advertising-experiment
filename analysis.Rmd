@@ -12,16 +12,14 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 
-## Question 1
-
-```{r Question 1 load data}
+```{r load data}
 load('IGAds.Rdata')
 
 str(IGAds)
 head(IGAds)
 ```
 
-```{r Question 1 Conversion}
+```{r Conversion}
 nbin = 25000
 
 A <- IGAds[IGAds$Condition == 'A',]
@@ -52,7 +50,7 @@ c_ab
 
 ### All the ads have significantly higher conversion rate than Control Group (p < 0.05/3 = 0.0167).
 
-```{r Question 1 t-test for revenue}
+```{r t-test for revenue}
 A_rev <- A$Revenue[A$Conversion == 1]
 B_rev <- B$Revenue[B$Conversion == 1]
 C_rev <- C$Revenue[C$Conversion == 1]
@@ -69,7 +67,7 @@ c_t$p.value*3
 
 ### Among converted customers, Ads A and C have significantly higher average revenue than Control Group (p < 0.05/3 = 0.0167).
 
-```{r Question 1 Computing and Comparing ROI}
+```{r Computing and Comparing ROI}
 ## Computing ROI for each advertisement
 c = 0.20
 CPIC_a <- c / (a_ab$estimate[1] - a_ab$estimate[2])
@@ -90,14 +88,13 @@ ROI_c
 ```
 ### Advertisement A and C have positive ROIs, therefore we should continue to use A and C.
 
-## Question 2
 https://www.optimizely.com/sample-size-calculator/#/?conversion=2.568&effect=20&significance=95
 
 In order to detect minimum detectable effect, we decide to stop the experiment at 60000 people (15000 for each Ad and control group) through the above website. Assume we found that Ad B performs worst. 
 
 Therefore, for the rest of 30,000 people (exclude control group), we decide to exclude Ad B and evenly distribute it among Ad A and C.
 
-```{r Question 2}
+```{r}
 con_a <- countA / nbin
 con_b <- countB / nbin
 con_c <- countC / nbin
